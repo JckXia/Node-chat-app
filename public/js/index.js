@@ -25,6 +25,7 @@ socket.on('connect',function(){
     from:'Jack',
     text:'Hey whats up Bob'
   },function(data){
+    $('[name=message]').val('');
     console.log('Got it');
   });
 
@@ -34,11 +35,12 @@ socket.on('connect',function(){
 
   $("#message-form").on('submit',function(e){
      e.preventDefault();
+       var messageTextBox=    $('[name=message]');
      socket.emit('CreateMessage',{
        from:'User',
-       text: $('[name=message]').val()
+       text: messageTextBox.val()
      },function(){
-
+     messageTextBox.val('');
      })
      console.log(e);
   });
