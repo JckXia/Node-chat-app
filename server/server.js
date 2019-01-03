@@ -1,26 +1,43 @@
-const path=require('path');
-const http=require('http');
-const express=require('express');
-const socketIO=require('socket.io');
-var app=express();
-var server=http.createServer(app);
-var io=socketIO(server); //Websocket server COmmunicate between server and the client
+const path = require('path');
+const http = require('http');
+const express = require('express');
+const socketIO = require('socket.io');
 
-const publicPath=path.join(__dirname,'../public');
-const port=process.env.PORT||3000;
+const {generateMessage}=require('./utils/message');
+const publicPath = path.join(__dirname, '../public');
+const port = process.env.PORT || 3000;
+var app = express();
+var server = http.createServer(app);
+var io = socketIO(server);
+
 app.use(express.static(publicPath));
 
-io.on('connection',(socket)=>{
-  //Similar to the client side socket
-   console.log('New user connected');
+io.on('connection', (socket) => {
+  console.log('New user connected');
 
-   socket.on('disconnect',()=>{
-     console.log('User disconnected');
-   });
+  socket.emit('newMessage',generateMessage('Admin','Welcome to the chat app'));
+
+  socket.broadcast.emit('broadcast', generateMessage('Admin','New user joined'));
+
+  socket.on('createMessage', (message) => {
+    console.log('createMessage', message);
+    io.emit('newMessage', {
+      from: message.from,
+      text: message.text,
+      createdAt: new Date().getTime()
+    });
+    // socket.broadcast.emit('newMessage', {
+    //   from: message.from,
+    //   text: message.text,
+    //   createdAt: new Date().getTime()
+    // });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User was disconnected');
+  });
 });
 
-server.listen(port,()=>{
-  console.log(`Server up on port ${port}`);
+server.listen(port, () => {
+  console.log(`Server is up on ${port}`);
 });
-
-console.log(publicPath);
