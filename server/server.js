@@ -13,26 +13,34 @@ var io = socketIO(server);
 app.use(express.static(publicPath));
 
 io.on('connection', (socket) => {
+
+ 
+  socket.on('SendMsg',(data,callback)=>{
+    console.log(data);
+    callback({
+      recieved:true
+    });
+  //  console.log(callback);
+  })
   console.log('New user connected');
 
   socket.emit('newMessage',generateMessage('Admin','Welcome to the chat app'));
 
   socket.broadcast.emit('broadcast', generateMessage('Admin','New user joined'));
 
-  socket.on('createMessage', (message) => {
+  socket.on('CreateMessage', (message,callback) => {
     console.log('createMessage', message);
-    io.emit('newMessage', {
-      from: message.from,
-      text: message.text,
-      createdAt: new Date().getTime()
-    });
-    // socket.broadcast.emit('newMessage', {
-    //   from: message.from,
-    //   text: message.text,
-    //   createdAt: new Date().getTime()
-    // });
+    io.emit('newMessage', generateMessage(message.from,message.text));
+    callback({
+      read:true,
+      text:'Message created successfully'
+    });  //Server acknowldeges respond have been recorded
   });
 
+  socket.on('Check',(message,callback)=>{
+    console.log('Check ',message);
+    callback();
+  });
   socket.on('disconnect', () => {
     console.log('User was disconnected');
   });
